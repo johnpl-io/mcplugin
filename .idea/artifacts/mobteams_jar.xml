@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="mobteams:jar">
+    <output-path>$USER_HOME$/mctestpluginserver/plugins</output-path>
+    <root id="archive" name="mobteams.jar">
+      <element id="module-output" name="mobteams" />
+    </root>
+  </artifact>
+</component>

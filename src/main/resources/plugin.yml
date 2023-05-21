@@ -1,0 +1,4 @@
+name: mobteams
+version: '${project.version}'
+main: org.lvrd.mobteams.Mobteams
+api-version: 1.19

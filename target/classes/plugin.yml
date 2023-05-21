@@ -1,0 +1,4 @@
+name: mobteams
+version: '1.0-SNAPSHOT'
+main: org.lvrd.mobteams.Mobteams
+api-version: 1.19
