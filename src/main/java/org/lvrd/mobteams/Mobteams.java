@@ -33,10 +33,7 @@ public final class Mobteams extends JavaPlugin implements Listener {
             String teamName = isOnTeam(newEntity);
             if (teamName != null) {
                Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
-
-                for(Map.Entry mp: MapOfTeams.entrySet()) {
-                    System.out.println("Team Name : " + mp.getKey() + " Members : " + mp.getValue());
-                }
+                    FindEnemyTarget(MapOfTeams);
 
             }
         }
@@ -72,7 +69,31 @@ public void onCreatureDie(EntityDeathEvent e) {
     }
     //function that sets target for monsters on a team to the closest enemy
     private void FindEnemyTarget(Map<String, List<LivingEntity>> MapOfTeams) {
-
+        for(Map.Entry<String, List<LivingEntity>> mp: MapOfTeams.entrySet()) {
+            for(LivingEntity livingEntity : mp.getValue()) {
+                    if(!(livingEntity instanceof Monster)) {
+                            continue;
+                    }
+                    double minDistance = Double.POSITIVE_INFINITY;
+                    LivingEntity minLivingEntity = null;
+                for(Map.Entry<String, List<LivingEntity>> teams: MapOfTeams.entrySet()) {
+                    if(teams.getKey().equals(mp.getKey())) {
+                        continue; //skip entities on the same team
+                    }
+                    for(LivingEntity target : teams.getValue()) {
+                        double DistanceToEntity = livingEntity.getLocation().distance(target.getLocation());
+                        if(DistanceToEntity < minDistance) {
+                            minDistance = minDistance;
+                            minLivingEntity = target;
+                        }
+                    }
+                }
+                Monster monster = (Monster)livingEntity;
+                monster.setAI(true);
+                System.out.println("TARGET SET " + minLivingEntity + "is targeted by " + monster);
+                monster.setTarget(minLivingEntity);
+            }
+        }
     }
     private void setTargetForAllMonstersOfType(Monster monster, EntityType type) {
         for (Entity entity : monster.getWorld().getEntities()) {
