@@ -30,11 +30,11 @@ public final class Mobteams extends JavaPlugin implements Listener {
         Creature creature = (Creature) event.getEntity();
         String teamName = isOnTeam(creature);
         if(creature instanceof Monster && (teamName.length() > 0)) {
-            //creature is on team
+
         }
     }
 
-    private Map<String, List<LivingEntity>> GetLivingEntityNotOnTeam() {
+    private Map<String, List<LivingEntity>> GetTeams() {
         Map<String, List<LivingEntity>> teams = new HashMap<>();
         for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
             Set<String> entries = team.getEntries();
@@ -44,8 +44,10 @@ public final class Mobteams extends JavaPlugin implements Listener {
             List<LivingEntity> livingEntities = teams.get(teamName);
             for (String entry : entries) {
                 try {
-                        LivingEntity mob = (LivingEntity) Bukkit.getEntity(UUID.fromString(entry));
-                        livingEntities.add(mob);
+                    Entity mob = Bukkit.getEntity(UUID.fromString(entry));
+                        if(mob instanceof LivingEntity) {
+                            livingEntities.add((LivingEntity) mob);
+                        }
                 } catch (IllegalArgumentException e){
                     //is a player
                         LivingEntity player = (LivingEntity) Bukkit.getPlayer(entry);
