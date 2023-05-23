@@ -12,12 +12,10 @@ import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public final class Mobteams extends JavaPlugin implements Listener {
-    List<Entity> entities;
+
     @Override
     public void onEnable() {
         // Plugin startup logic
@@ -27,7 +25,7 @@ public final class Mobteams extends JavaPlugin implements Listener {
 
 
     @EventHandler
-    public void onEntitySpawn(CreatureSpawnEvent event){
+    public void onCreatureSpawn(CreatureSpawnEvent event){
 
         Creature creature = (Creature) event.getEntity();
         String teamName = isOnTeam(creature);
@@ -36,6 +34,28 @@ public final class Mobteams extends JavaPlugin implements Listener {
         }
     }
 
+    private Map<String, List<LivingEntity>> GetLivingEntityNotOnTeam() {
+        Map<String, List<LivingEntity>> teams = new HashMap<>();
+        for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
+            Set<String> entries = team.getEntries();
+            String teamName = team.getName();
+            UUID uid;
+                teams.put(teamName, new ArrayList<>());
+            List<LivingEntity> livingEntities = teams.get(teamName);
+            for (String entry : entries) {
+                try {
+                        LivingEntity mob = (LivingEntity) Bukkit.getEntity(UUID.fromString(entry));
+                        livingEntities.add(mob);
+                } catch (IllegalArgumentException e){
+                    //is a player
+                        LivingEntity player = (LivingEntity) Bukkit.getPlayer(entry);
+                        livingEntities.add(player);
+                }
+            }
+
+        }
+            return teams;
+    }
 
     private void setTargetForAllMonstersOfType(Monster monster, EntityType type) {
         for (Entity entity : monster.getWorld().getEntities()) {
