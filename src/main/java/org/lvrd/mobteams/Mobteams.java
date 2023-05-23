@@ -1,5 +1,6 @@
 package org.lvrd.mobteams;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -83,9 +84,11 @@ public void onCreatureDie(EntityDeathEvent e) {
                     for(LivingEntity target : teams.getValue()) {
                         double DistanceToEntity = livingEntity.getLocation().distance(target.getLocation());
                         if(DistanceToEntity < minDistance) {
-                            minDistance = minDistance;
+                            minDistance = DistanceToEntity;
                             minLivingEntity = target;
+
                         }
+
                     }
                 }
                 Monster monster = (Monster)livingEntity;
