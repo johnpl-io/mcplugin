@@ -12,9 +12,11 @@ import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
 
-import java.util.*;
-
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 public final class Mobteams extends JavaPlugin implements Listener {
+    List<Entity> entities;
 
     @Override
     public void onEnable() {
@@ -25,66 +27,40 @@ public final class Mobteams extends JavaPlugin implements Listener {
 
 
     @EventHandler
-    public void onCreatureSpawn(CreatureSpawnEvent event){
+    public void entity_spawn_spy(CreatureSpawnEvent event) {
+        if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER_EGG) {
+            for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
+                Set<String> entries = team.getEntries();
+                for (String entry : entries) {
 
-        Creature creature = (Creature) event.getEntity();
-        String teamName = isOnTeam(creature);
-        if(creature instanceof Monster && (teamName.length() > 0)) {
+                    Entity entity =  Bukkit.getEntity(UUID.fromString(entry));
+                    if(entity instanceof Monster) {
+                        System.out.println(entity);
+                    }
+                }
 
-        }
-    }
-
-    private Map<String, List<LivingEntity>> GetTeams() {
-        Map<String, List<LivingEntity>> teams = new HashMap<>();
-        for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
-            Set<String> entries = team.getEntries();
-            String teamName = team.getName();
-            UUID uid;
-                teams.put(teamName, new ArrayList<>());
-            List<LivingEntity> livingEntities = teams.get(teamName);
-            for (String entry : entries) {
-                try {
-                    Entity mob = Bukkit.getEntity(UUID.fromString(entry));
-                        if(mob instanceof LivingEntity) {
-                            livingEntities.add((LivingEntity) mob);
-                        }
-                } catch (IllegalArgumentException e){
-                    //is a player
-                        LivingEntity player = (LivingEntity) Bukkit.getPlayer(entry);
-                        livingEntities.add(player);
+                // }
+                Creature creature = (Creature) event.getEntity();
+                if (creature instanceof Monster) {
+                    Monster monster = (Monster) creature;
+                    monster.setAI(true); // Enable AI for the monster //line may not be necessary
+                    setTargetForAllMonstersOfType(monster, monster.getType()); // Set the target as the closest monster
+                    System.out.println("Monster creature has spawned");
+                } else {
+                    System.out.println("creature spawned");
                 }
             }
 
         }
-            return teams;
     }
-
     private void setTargetForAllMonstersOfType(Monster monster, EntityType type) {
         for (Entity entity : monster.getWorld().getEntities()) {
 
             if (entity instanceof Monster && entity != monster && entity.getType() == type) {
                 ((Monster) entity).setTarget(monster); // Set the target as the original monster
-                monster.setTarget((Monster) entity);
+                monster.setTarget((LivingEntity) entity);
             }
         }
-    }
-    //check if an entity is on a team
-    private String isOnTeam(Entity entity) {
-        for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
-            Set<String> entries = team.getEntries();
-            UUID uid = entity.getUniqueId();
-
-            for (String entry : entries) {
-                try {
-                    if (uid.equals(UUID.fromString(entry))) {
-                        return team.getName();
-                    }
-                } catch (IllegalArgumentException e) {
-                    //means that a player is an entry
-                }
-            }
-        }
-        return null;
     }
 
     @Override
@@ -92,3 +68,4 @@ public final class Mobteams extends JavaPlugin implements Listener {
         // Plugin shutdown logic
     }
 }
+
