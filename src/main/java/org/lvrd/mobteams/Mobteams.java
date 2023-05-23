@@ -22,18 +22,30 @@ public final class Mobteams extends JavaPlugin implements Listener {
         System.out.println("The plugin is running !");
         getServer().getPluginManager().registerEvents(this, this);
     }
-
-
     @EventHandler
-    public void onCreatureSpawn(CreatureSpawnEvent event){
+    public void onCreatureSpawn(EntitySpawnEvent event){
 
-        Creature creature = (Creature) event.getEntity();
-        String teamName = isOnTeam(creature);
-        if(creature instanceof Monster && (teamName.length() > 0)) {
 
+
+        Entity newEntity = event.getEntity();
+
+
+            String teamName = isOnTeam(newEntity);
+            if (teamName != null) {
+               Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
+
+                for(Map.Entry mp: MapOfTeams.entrySet()) {
+                    System.out.println("Team Name : " + mp.getKey() + " Members : " + mp.getValue());
+                }
+
+            }
         }
-    }
-
+        @EventHandler
+public void onCreatureDie(EntityDeathEvent e) {
+        if(e.getEntity() instanceof Player) {
+            System.out.println("A loser player died!");
+        }
+}
     private Map<String, List<LivingEntity>> GetTeams() {
         Map<String, List<LivingEntity>> teams = new HashMap<>();
         for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
@@ -58,13 +70,16 @@ public final class Mobteams extends JavaPlugin implements Listener {
         }
             return teams;
     }
+    //function that sets target for monsters on a team to the closest enemy
+    private void FindEnemyTarget(Map<String, List<LivingEntity>> MapOfTeams) {
 
+    }
     private void setTargetForAllMonstersOfType(Monster monster, EntityType type) {
         for (Entity entity : monster.getWorld().getEntities()) {
 
             if (entity instanceof Monster && entity != monster && entity.getType() == type) {
                 ((Monster) entity).setTarget(monster); // Set the target as the original monster
-                monster.setTarget((Monster) entity);
+                monster.setTarget((LivingEntity) entity);
             }
         }
     }
