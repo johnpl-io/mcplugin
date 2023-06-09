@@ -34,8 +34,10 @@ public final class Mobteams extends JavaPlugin implements Listener {
         Entity newEntity = event.getEntity();
 
                 if(newEntity instanceof LivingEntity) {
-                    Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
-                    FindEnemyTarget(MapOfTeams);
+
+                    FindEnemyTarget((LivingEntity) newEntity);
+                 //   Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
+                  //  FindEnemyTarget(MapOfTeams);
                 }
 
 
@@ -46,8 +48,9 @@ public final class Mobteams extends JavaPlugin implements Listener {
 public void onCreatureDie(EntityDeathEvent event) {
         Entity newEntity = event.getEntity();
         if(newEntity instanceof LivingEntity) {
-            Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
-            FindEnemyTarget(MapOfTeams);
+            FindEnemyTarget((LivingEntity) newEntity);
+            // Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
+           // FindEnemyTarget(MapOfTeams);
         }
 
 }
@@ -124,6 +127,62 @@ public void onCreatureDie(EntityDeathEvent event) {
             }
         }
     }
+
+    private void FindEnemyTarget(LivingEntity livingentity) {
+        for (Entity enemy : livingentity.getWorld().getEntities()) {
+            if (!(enemy instanceof Mob)) {
+                continue;
+            }
+            Mob pot_enemy = (Mob) enemy;
+            String current_teamname = "";
+            Team current_team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(String.valueOf(pot_enemy.getUniqueId()));
+            if (current_team != null) {
+                current_teamname = current_team.getName();
+            }
+            double minDistance = Double.POSITIVE_INFINITY;
+            LivingEntity minLivingEntity = null;
+
+            for (Entity target : livingentity.getWorld().getEntities()) {
+                if(target.getUniqueId().equals(enemy.getUniqueId())) {
+                    continue;
+                }
+                Team target_team = null;
+                if (target instanceof LivingEntity) {
+                    if (target instanceof Player) {
+                        if (((Player) target).getGameMode() == GameMode.CREATIVE) {
+                            continue;
+                        }
+                        target_team = Bukkit.getScoreboardManager().getMainScoreboard().getPlayerTeam((Player) target);
+                    } else {
+                        target_team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(String.valueOf(target.getUniqueId()));
+                    }
+                    String target_teamname = null;
+                    if (target_team != null) {
+                        target_teamname = target_team.getName();
+                    }
+                    double DistanceToEnemy = -1;
+
+                    if (!(current_teamname.equals(target_teamname)) && !current_teamname.equals(""))  {
+                        DistanceToEnemy = enemy.getLocation().distance(target.getLocation());
+                    }
+                    if(current_teamname.equals("") && target_team != null) {
+                        DistanceToEnemy = enemy.getLocation().distance(target.getLocation());
+                    }
+                    if ((DistanceToEnemy != -1) && DistanceToEnemy < minDistance) {
+                        minDistance = DistanceToEnemy;
+                        minLivingEntity = (LivingEntity) target;
+                    }
+                }
+            }
+            if(minDistance <= 20 && minLivingEntity != null) {
+                Mob mob = (Mob) enemy;
+                mob.setAI(true);
+                System.out.println("TARGET SET " + minLivingEntity + " is targeted by " + mob);
+                mob.setTarget(minLivingEntity);
+            }
+        }
+    }
+
     private void setTargetForAllMonstersOfType(Monster monster, EntityType type) {
         for (Entity entity : monster.getWorld().getEntities()) {
 
