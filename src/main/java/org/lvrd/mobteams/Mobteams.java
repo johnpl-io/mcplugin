@@ -35,9 +35,9 @@ public final class Mobteams extends JavaPlugin implements Listener {
 
                 if(newEntity instanceof LivingEntity) {
 
-                    FindEnemyTarget((LivingEntity) newEntity);
-                 //   Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
-                  //  FindEnemyTarget(MapOfTeams);
+                 //   FindEnemyTarget((LivingEntity) newEntity);
+                  Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
+                  FindEnemyTarget(MapOfTeams);
                 }
 
 
@@ -48,9 +48,9 @@ public final class Mobteams extends JavaPlugin implements Listener {
 public void onCreatureDie(EntityDeathEvent event) {
         Entity newEntity = event.getEntity();
         if(newEntity instanceof LivingEntity) {
-            FindEnemyTarget((LivingEntity) newEntity);
-            // Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
-           // FindEnemyTarget(MapOfTeams);
+          //  FindEnemyTarget((LivingEntity) newEntity);
+             Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
+           FindEnemyTarget(MapOfTeams);
         }
 
 }
