@@ -1,19 +1,22 @@
 package org.lvrd.mobteams;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Team;
 
 import java.util.*;
+
+
 
 public final class Mobteams extends JavaPlugin implements Listener {
 
@@ -24,25 +27,29 @@ public final class Mobteams extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
     }
     @EventHandler
-    public void onCreatureSpawn(EntitySpawnEvent event){
+    public void onCreatureSpawn(CreatureSpawnEvent event){
 
 
 
         Entity newEntity = event.getEntity();
 
-
-            String teamName = isOnTeam(newEntity);
-            if (teamName != null) {
-               Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
+                if(newEntity instanceof LivingEntity) {
+                    Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
                     FindEnemyTarget(MapOfTeams);
+                }
 
-            }
+
+
+
         }
         @EventHandler
-public void onCreatureDie(EntityDeathEvent e) {
-        if(e.getEntity() instanceof Player) {
-            System.out.println("A loser player died!");
+public void onCreatureDie(EntityDeathEvent event) {
+        Entity newEntity = event.getEntity();
+        if(newEntity instanceof LivingEntity) {
+            Map<String, List<LivingEntity>> MapOfTeams = GetTeams();
+            FindEnemyTarget(MapOfTeams);
         }
+
 }
     private Map<String, List<LivingEntity>> GetTeams() {
         Map<String, List<LivingEntity>> teams = new HashMap<>();
@@ -72,29 +79,48 @@ public void onCreatureDie(EntityDeathEvent e) {
     private void FindEnemyTarget(Map<String, List<LivingEntity>> MapOfTeams) {
         for(Map.Entry<String, List<LivingEntity>> mp: MapOfTeams.entrySet()) {
             for(LivingEntity livingEntity : mp.getValue()) {
-                    if(!(livingEntity instanceof Monster)) {
+                    if(!(livingEntity instanceof Mob)) {
                             continue;
                     }
+                    String current_team = mp.getKey();
                     double minDistance = Double.POSITIVE_INFINITY;
                     LivingEntity minLivingEntity = null;
-                for(Map.Entry<String, List<LivingEntity>> teams: MapOfTeams.entrySet()) {
-                    if(teams.getKey().equals(mp.getKey())) {
-                        continue; //skip entities on the same team
-                    }
-                    for(LivingEntity target : teams.getValue()) {
-                        double DistanceToEntity = livingEntity.getLocation().distance(target.getLocation());
-                        if(DistanceToEntity < minDistance) {
-                            minDistance = DistanceToEntity;
-                            minLivingEntity = target;
-
+                    List<Entity> AllEntities = livingEntity.getWorld().getEntities();
+                    for (Entity target : AllEntities) {
+                        if(target instanceof LivingEntity) {
+                            if(target instanceof Player) {
+                                if(((Player) target).getGameMode() == GameMode.CREATIVE) {
+                                    continue;
+                            }
+                        }
+                        Team target_team = null;
+                           if(target instanceof Player) {
+                               target_team = Bukkit.getScoreboardManager().getMainScoreboard().getPlayerTeam((Player) target);
+                            } else {
+                               target_team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(String.valueOf(target.getUniqueId()));
+                           }
+                        String target_teamname = null;
+                        if(target_team != null) {
+                            target_teamname = target_team.getName();
                         }
 
+                           if(!(current_team.equals(target_teamname))) {
+
+                               double DistanceToEntity = livingEntity.getLocation().distance(target.getLocation());
+                                if(DistanceToEntity < minDistance) {
+                                   minDistance = DistanceToEntity;
+                                   minLivingEntity = (LivingEntity) target;
+                                }
+                            }
+                        }
                     }
-                }
-                Monster monster = (Monster)livingEntity;
-                monster.setAI(true);
-                System.out.println("TARGET SET " + minLivingEntity + "is targeted by " + monster);
-                monster.setTarget(minLivingEntity);
+                    if(minDistance <= 20) {
+                        Mob mob = (Mob) livingEntity;
+                        mob.setAI(true);
+                        System.out.println("TARGET SET " + minLivingEntity + "is targeted by " + mob);
+                        mob.setTarget(minLivingEntity);
+                    }
+
             }
         }
     }
